@@ -1,0 +1,198 @@
+** 회원가입 **
+1. index.php
+    - 로그인/회원가입 클릭 필요(login.php/join.php)
+2. join.php
+    - members.php로 보냄
+    - 유효성 검사
+    - 아이디 중복체크(id_check.php/id_search.php) 팝업 이벤트
+3. members.php
+    - 이전 join.php>form 데이터 받아오기($name=$_POST["uname"])
+    - 값확인 (echo)
+    - dbcon.php( 
+        - 데이터베이스 연결 ($dbcon = mysqli_connect("localhost","root","")or die("접속실패 메세지"))
+        - db선택 mysqli_select($dbcon,"testdb")
+        - 문자셋 mysqli_set_charset($dbcon,"utf8")
+        )
+    - 외부 db연결 불러오기(include "../inc/dbcon.php")
+    - 데이터처리(쿼리작성)
+        $sql = "insert into members(...)values(...)
+        값확인
+    - 데이터처리(db에전달)
+        mysqli_query($dbcon,$sql);
+    - db종료
+        mysqli_close($dbcon);
+    -페이지 이동(회원가입완료화면)
+        echo "
+        <script type='text/javascript>
+        location.href='result.php'
+        <script>" 
+4. result.php
+5. id_check.php
+    - id_search.php로 보냄
+    - 검색할 아이디 input
+    - 유효성 검사
+6. id_search.php
+    - 이전페이지 데이터 받아오기
+    - 데이터베이스 연결
+    - 데이터처리(쿼리작성)
+        select uid from memebers where uid='$id_check';
+    - 데이터처리(db전달)
+        $result = mysqli_query($dbcon,$sql);
+    -결과값 리턴
+        $rows = mysqli_num_rows($result);
+    -결과 출력
+        - 밑에 html코드만든다.
+        존재한다면/존재하지 않는다면
+        if문사용하여 !$row라면 사용가능한 아이디 입니다.
+        (a태그에 클릭 이벤트 추가)
+        else라면 사용할 수 없는 아이디 입니다.
+        (a태그에 javascript:history.back())
+        - javascript로 클릭이벤트 스크립트
+        (opener uid의 value를 사용가능한 아이디의 값으로 넣는다.)
+        - window.close();
+        - 이부분을 if문에 한번더 넣어서 !$row일때 스크립트 실행 아니면 스크립트를 날려버림
+    - db종료
+        - mysqli_close($dbcon);
+
+** 로그인 **
+1. login.php
+    - login_ok.php로 action
+    - 아이디/비밀번호 입력란
+    - 유효성 검사
+2. login_ok.php
+    - session_start();모든페이지에서 공통으로 사용할 수 있도록
+    -데이터 받아오기
+    - 데이터베이스 연결
+    - 쿼리작성
+        (select * from members where uid = '$uid')
+    - db전달
+        $result = mysqli_query($dbcon,$sql)
+    - 결과값 리턴
+        $array = mysqli_fetch_array($result)
+    -if문사용해서 존재여부 확인
+        if(!$array["uid"]){
+
+        };
+        if($array["uid"]){
+            if(array["pwd] != $pwd){
+
+            }
+        }
+        (아이디가 일치하는 사람중에 패스워가 일치 하지 않는다면)
+    - 세션변수
+        ($_SESSION["uid"]) = $array["uid"]
+    - db종료
+    -페이지 이동
+3. logout.php
+    - index.php로그인후 로그인-->로그아웃으로 바뀌게 if문생성
+    -session_start();
+    -세션 삭제 unset($_SESSION["uid"]);
+    -자바스크립트 알림창으로 로그아웃되었습니다. index로 돌아가기
+4. index.php
+    - session_start();
+    - $sid = isset..? A:B (세션아이디가 있으면 세션아이디를 나오게 하고 아니면 아무것도 하지마)
+    - html코드 만들기
+    - 로그인 전과 로그인 후를 if문으로 만들어준다.
+        로그인전---->로그인/회원가입
+        로그인후---->로그아웃/정보수정
+    - 로그아웃에 클릭이벤트 추가 하거나 바로 로그아웃되게함
+    - 로그아웃이 완료되면 logout.php로 돌아감
+
+** 정보수정**
+1. edit.php
+    - join.php복사해서 edit.php로 사용
+    - session_start();
+    - $sid = ...? A:b; 로그인한 사용자만 사용할 수있어야함
+    - 비로그인 사용자가 접근할시 로그인 사용자만 사용 가능합니다. 스크립트 실행
+    - 쿼리작성
+    $sql = select * from members where uid='$sid';
+    - 쿼리전송
+    $result = mysqli_query($dbcon,$sql)
+    - 데이터가져오기
+    $array = mysqli_fetch_array($reslut)
+    - 데이터 가져오기
+    -이름/아이디는 기본으로 셋팅되어야하므로 <?php echo $array["uname"]?>셋팅함
+    - 생년월일은 1994-12-26형식으로 출력되기 때문에 $birth = explode("-",$array["birthday"])로 가져오기하고 input value="<?php echo $birth[0].$birth[1].$birth[2]연결연산자로 이어준다.
+    - 이메일도 똑같은 방식(edit에서 이메일을 하나로 합치는것도 방법임)
+    성별
+    checked 있는거랑 없는거 하나씩 만들어서
+    if else문으로 if($array["gender"] == "M"){
+        checked M
+    }else{checked 아닌것}
+    성별을 못바꾸게 할려면 disabled 하면됨
+    - 회원탈퇴 버튼추가
+
+2. edit_ok.php
+    - session_start();
+    - 이전 데이터 받아오기
+    - 쿼리 작성
+      (쿼리가 두가지여야함 조건문 써서 비밀번호를 적었을 때와 안적었을때의 쿼리문을 작성 update)
+    - db연결
+    - 쿼리전송
+    - db종료
+    - 페이지 이동
+
+** 회원탈퇴 **
+1. delete.php
+    - edit.php 회원탈퇴 적용(onclick/alert/if(n))
+    - session
+    - 쿼리작성
+    - db연결
+    - 쿼리전송
+    - db종료
+    - unset 로그아웃
+    - 페이지 이동 index
+
+** 관리자 페이지 **
+1. admin폴더에 admin.php추가
+2. index.php 에 if(아이디가 관리자면){
+    a태그 admin.php로 이동
+}
+3. admin폴더에 login.php/login_ok.php 복붙
+4. admin.php 에서 if(아이디가 관리자아이디가 아니거나 아이디가 없다면){
+    echo 경고창 관리자만 사용할 수 있습니다.
+    location.href='admin/login.php'
+}---> URL로 바로 접속을 막을 수 있음
+    admin/login_ok.php if 관리자 아이디가 필요합니다.
+5. admin.php 회원관리와 admin/mgr_members.php 생성후 연결
+6. 쿼리작성 (select * from members)/db연결/ 쿼리 전송 밑에 html 결과 출력
+7. 반복문 while($array 변수){
+    <tr>
+    <td>
+}
+8.회원목록 번호
+9. 성별 M--> 남 F--> 여로 바꾸기
+10 회원들마다 수정할수 있게 하기
+    mgr_member.php
+    회원들마다 각자 수정해야하기때문에
+    a태그에 파일명.확장자 mgr_member_edit.php?idx=<?php echo $array["idx"]; ?>
+    mgr_edit.php 에는 session["uid]로 받아올것이 아니라 $_GET["idx"]-->a태그가 get방식이기 때문에
+    쿼리문도 idx = '$idx';
+
+    mgr_member_edit.php
+    session_start
+    member.php 에 get 방식 idx를 불러온다.
+    쿼리문 idx=$dix
+    아이디에 폼태그에 보이지 않는 hidden input 만들어서 idx값을 불러오게 한다.(<?php echo $idx; ?>)
+    name = idx id=idx
+
+    mgr_member_edit_ok.php
+    edit.php가 post 이기때문에 idx는 post방식으로 불러옴
+    쿼리문 수정
+    페이지 mgr_member.php로 이동
+
+11. 회원들마다 삭제 할수 있게 하기
+    -수정에서 탈퇴
+    edit.php button oncilck="del_id(<?php echo $array["idx"]; ?>)" 이벤트 추가
+    script href "mgr_member_delete.php?idx="+idx--->idx가 붙는 이유는 delete.php에서 get방식으로 불러와야 쿼리문을 완성할 수 있기 떄문에
+
+    mgr_member_delete.php
+    get 방식으로 idx불러오기
+    쿼리수정
+    unset 삭제
+    페이지 이동 mgr_member.php
+
+    - member.php 에서 바로 삭제
+    member.php
+    삭제 a태그에 oncilck="del_id(<?php echo $array["idx"]; ?>)" 이벤트 추가
+    script href "mgr_member_delete.php?idx="+idx--->idx가 붙는 이유는 delete.php에서 get방식으로 불러와야 쿼리문을 완성할 수 있기 떄문에

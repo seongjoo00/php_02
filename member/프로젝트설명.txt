@@ -1,0 +1,414 @@
+datetime 은 ssl 에서 구하는 경우가 많음
+
+필드에 들어갈값이 데이터베이스에 들어갈값이 적절한가
+
+관련된 파일별로 정리해놓는게 제일좋음
+
+website는 내가하는 사이트 이름으로 해줘야함
+members는 회원관리용 페이지
+따로 로그인 폴더 만들꺼
+
+
+****회원가입****
+
+**회원가입데이터 정리**
+1. index.php (메인페이지같은것)
+2. join.php(회원가입페이지)
+    1)id_check.php
+    2)id_search.php
+3. members.php만들때 확인해야할 두가지
+    메소드가 뭐냐 필드의 name값
+4. result.php(가입완료페이지)
+
+**로그인 데이터 정리 **
+1. login.php
+2. login_ok.php
+3. logout.php
+
+
+members.php가 해야할일 3가지
+
+// 이전페이지에서 데이터 받아오기
+    $--->php의 변수선언문은 $(달러임)
+
+    php도 대소문자 구분 해야함
+    $까지가 변수임
+    $uname = $_POST["uname"];
+    (회원가입에서 데이터를 보내는 방식이 POST이기 때문에)
+
+    **폼태그에 name을 부여해야하는 아주 중요한 이유**
+    members.php에서 input에서 입력된 값이 궁금하면
+    $_POST[""]중괄호안에 form태그에 입력한 input name을 써주면됨
+
+// 입력값 확인
+    js: document.wirte
+    php : echo
+
+    ex) echo $변수명
+
+    js: 변수와 문자를 연결 + 
+    php : 변수와 문자를 .(점) 으로연결
+
+    * 생년월일 자르기
+        임의의 변수하나를 만들고 mb_substr써서 쪼갠다는 함수를 변수에 담아놓음
+        변수 = 변수1."-".변수2."-".변수3;
+
+     - explode (특정문자열을 기준으로 자르기를 해라/한글에 조금약함)
+        $txt = "2010/01/20";
+        $str = explode($txt,"/"); --->$txt를 explode 한 결과값을 변수로 저장
+        출력순서정하기
+         $str[0] = 2010;
+         $str[1] = 01;
+         $str[2] = 20;
+
+     - mb_substr (특정갯수만큼 자르는것)
+        mb_substr(어떤값,몇번째부터 시작해서,카운트)
+
+    php에서 소문자 y를 쓰면 뒤에 두자리수 네자리를 출력 시킬려면 대문자 Y 
+    2010/01/20 ---> Y/m/d
+    2010.01.20 ---> Y.m.d
+    2010-01-20 ---> Y-m-d
+    
+    타임까지하는법
+    echo date("Y-m-d H:m:s",time());
+    시간은 apache 개발 나라국 기준으로 보임 ftp에 올려놓으면 정상으로 보임
+
+// 데이터베이스 연결
+
+php5.X : <?   /  mysql_
+php 7.X : <?php / mysqli_(아이언더바)
+
+$dbcon = mysqli_connect("host","아이디","비밀번호") or die("접속실패 메세지"); 
+    wamp쓰는사람은 비밀번호가 00000이고 xampp는 비밀번호 없음
+    dbcon 개발자들이 주로사용하는 연결 변수 이름 */
+
+// DB 선택
+    //mysql_select_db(연결객체,"DB명");
+    mysql_select_db($dbcon,"front1");
+    위에 $dbcon이 연결해주고 있음
+    여기까지 cmd 콘솔창에서의 use database 까지 들어간 화면이라고 생각하면됨 
+    --------------------------------------------------------------
+    이렇게하면 database를 너무 많이 접속해야하기 때문에 이부분만 따로 만들어서
+    필요할때마다 불러서 쓰는 방식을 사용함
+
+    sytle에서 외부css 불러오는게 import ----> php에서 불러오는것은 include
+
+
+// 데이터처리(저장 insert / 수정 update / 삭제 delete / 검색 select)
+데이터처리할 쿼리문 만드다음 db에 전달해줘 라고 써야함
+testdb.members(testdb안에members)
+    //쿼리 작성 php에서 쿼리문은 문자열처리해줘야함
+    //php의 변수는 따움표안에들어가도 변수임
+    //var a=1
+    /* document.write("a");--->a
+    document.write(a)--->1
+    ----------------------------
+    $a=1
+    echo $a; ---->1
+    echo "$a";---->1 */
+    //testdb.members(testdb안에members)
+    $sql = insert into members(
+        uname,uid,pwd,birthday,mobile,email,gender,reg_date)
+        values('1','2','3','4','5','6','7','8');
+
+    쿼리문작성한다 > 쿼리문장을 따움표로 감싼다 > $sql 변수로 담는다
+    a = b
+    a += c;
+    a += d;
+    출력값 abc
+
+    sql = a;
+    sql .= b;--->ab
+    sql .= c;--->abc
+
+    break ---> 다만들고나서 중간에 값만 확인하고 싶으면(밑에 db전달까지 다 만들었을경우)
+    join에서 입력값입력후 출력완료된 쿼리문을 cmd창에서 해본다음 제대로 되는지 확인
+
+    //db에 전달
+    $dbcon = mysqli_connect("localhost","root","") or die("접속실패 메세지"); 
+    여기까지는 cmd창에서 mysql -u root 까지 접속한 상태
+    mysqli_select_db($dbcon,"testdb");
+    여기는 use database까지 한거랑 같음
+
+    전달함수 = mysql_query(연결객체,쿼리)인자가 두개
+    연결객체 --> mysql_connect 문장
+    쿼리 --> 위에쓴쿼리문을 써야하는데 너무 기니깐 변수에 담아놓은것임
+
+    문자셋 설정
+        웹페이지로 넘어올때 한글깨짐 해결방법
+        1. php에 html 문자셋을 써주는 방법(mysqli_set_charset방법이 안먹힐때 씀)
+        2. 에디터창에서 저장할때 인코딩문제때문일 수 도있음(프로그램마다다름)
+        mysqli_set_charset(연결객체,"문자셋");
+        연결객체 ---> $dbcon
+        문자셋 --->"utf8"
+        이미 입력된 한글은 수정이 안되고 그다음 입력부터됨
+
+    db종료
+    mysql_close($dbcon);
+    값을 전달 했으면 닫자   
+
+// 페이지 이동
+페이지 이동하는건 자바스크립트가 가지고 있음
+주소이동 ---> location  (객체:)
+뒤로가기 ---> history.back();
+뒤로가기꾸욱누르기 ---> history.go(가고싶은 페이지의 순서);
+
+
+**아이디 중복확인**
+button 에 onclick추가
+javascript에 function 이벤트이름(){
+    window.open("팝업될 문서","팝업되었을때 이름","옵션");
+}
+검색빼고나머지는 전부 post로 해야함
+결과확인은 꼭 팝업일 필요없음
+button 타입은 button--->값을 아무것도 입력하지 않으면 검색하지 못하게 해야함
+
+구조**
+입력페이지 | 검색하는페이지 | 결과페이지 가 필요함
+
+
+input -->join 입력
+process -->데이터베이스 찾아주는
+db -->따로있음
+result -->돌아갈꺼냐 있다없다
+
+db종료까지는 members와같음
+쿼리문을 전송하고 저장하는건 거기서 끝나지만 select문은 결과를 가지고 오는동작이 필요함
+
+//db전달
+  $result = mysqli_query($db_search,$sql);/* 결과값을 가지고 와야해서 변수에 담아놓음 */
+   //var i = prompt("TEXT","");지금이거랑같은거임
+
+//결과값 리턴 --->검색일때
+mysql_fetch가 기본적임
+mysql_fetch_row--->필드순서
+mysql_fetch_array--->필드값
+mysqli_num_rows(전송쿼리);//결과행의 갯수 select count(*) from 
+ferch_row/fetch_array ---> 무조건 첫번째 행만 보여줌
+결과값을 읽어와 가져와 라는뜻
+값이 여러개면 반복문으로 써서 보여주어야함
+
+회원목록/게시판목록-->mysql_ferch_row/mysql_ferch_array 둘중에 한가지
+필드가 1개면 중복된아이디가 있다는 뜻이고 0이면 없다는 뜻인것
+select count(uid) from memebers;면 uid의 필드값이 몇개인지 알수 있음
+mysql_ferch_row/mysql_ferch_array을가지고 스크립트로 만들수도 있고
+카운트의 값으로 체크할 수도있지만 row(행) 발생한 행을 가지고 체크할 수 도 있음
+
+로그인이나 목록/클릭하면 내용나오게 하는것이나 내용수정하게 하는페이지 다똑같은 방법
+mysqli_ferch로 가야함
+
+//결과 출력
+<?php
+        if(!$row){
+            echo '사용 가능한 아이디 입니다.'
+        }else{
+            echo '사용할 수 없는 아이디 입니다.'
+        };
+?>
+이렇게 써도됨
+
+document/location/history 은 같은 라인임
+**돌아가기**
+<a href="javascript:history.back()">[돌아가기]</a> ---> 회원가입에서 이전으로 에서도 쓸 수 있음
+function return_id(){
+            opener.document.getElementById("uid").value = "<?php echo $id_check; ?>";
+            /* "따움표 잊지말고 넣기 */
+        }
+!!주의!!
+페이지소스봤을때 opener.document.getElementById("uid").value = 여기에 값이 들어올수 있기때문에
+강제로 스크립트적용하면 사용할 수없지만 join.php에 값이 들어가짐(해킹될 수있음)
+이럴때는 스크립트 자체를 날려버리면 해결할 수있다
+
+
+
+
+**사용하기**
+클리하면 join.php 아이디 입력부분에 값이 들어가야함
+function return_id(){
+            opener.document.getElementById("uid").value = "<?php echo $id_check; ?>";
+            /* "따움표 잊지말고 넣기 */
+        }
+
+
+
+<title>"<?php echo $id_check;?>"검색결과</title> 이렇게 써주면 ""검색결과 이렇게 뜸
+
+//db종료
+페이지이동에는 두가지 1)값이 0일때 사용가능합니다. 2)다시 아이디 검색창-->이렇게 써도 된지만 다른방법도 있음
+
+
+***로그인****
+website > login > login.php/login_ok.php
+
+db전달까지는 똑같음
+검색해야하니깐 결과값이 있어야함
+
+결과값에 뭐가 써있는지 알아내야함
+이럴때 쓰는게 mysql_ferch
+
+비밀번호는 아이디가 있을때에만
+
+여기서 쿼리를 얻은값은 이페이지 에서만 유효해 하지만 로그인은 모든페이지에서 유효해야하기때문에
+session--->모든페이지에서 공통으로 사용할 수 있는 자원
+이거없으면 로그인 유지할 수 없다
+$_SESSION --->세션아이디에 변수
+
+
+01.23 수업
+**index페이지에서 로그인시 로그아웃으로 바꾸기
+session --->로그인이 되었는지 확인할 수있음
+a라는 페이지에서 구해진 값을 그전체에서 사용할 수 있게해줌
+
+로그인전에 에러문구 안뜨게 하는방법
+isset 이걸로 바꿔줘
+로그인이랑 아이디정보가 유지되어야하는 상단에는 기본적으로 반드시
+밑에있는 코드를 넣어야함
+<?php
+    session_start();//로그인되었는지 알수 있음
+    /* echo $_SESSION["uid"]; */
+    //로그인전 오류문자 안나오게 하는방법
+    $sid = isset($_SESSION["uid"])? $_SESSION["uid"]:"";
+    //isset 이런상황에서 이거로 바꿔줘
+    //(조건)? A:B;
+    //세션아이디가 있으면(A) 세션아이디 띄우고 없으면(B) 아무것도 띄우지마;
+?>
+개발자 도구에서 application 에서 session을 알아낼 수 있음
+
+** 로그아웃 페이지
+일단 session을 켜봐야 값이 있는지 없는지 알 수 있으니깐 session_start 넣어야함
+unset 삭제해라 지워라
+로그아웃할때 로그아웃 확인창 뜨게할려면 javascript로 컴펌창 띄우면됨
+
+** 정보수정**
+로그인후 정보수정--->join.php복사해서 edit.php로 수정
+1 db연결  1.2번의 순서는 상관없음 연결은 전송하기 전에만 나오면됨
+2 쿼리작성
+3 쿼리전송
+4 데이터 가져오기
+
+$sid = isset($_SESSION["uid"])? $_SESSION["uid"]:"";
+//없으면이 중요한이유 --->로그인한 사용자만 수정할 수 있어야하기 때문에
+//특정파일의 주소만 알면 파일에 접근이 가능하기때문에
+//세션값으로 uid를 알아내야함 session으로 로그인 했기때문
+// db연결  1.2번의 순서는 상관없음 연결은 전송하기 전에만 나오면됨
+
+history.back();
+location.replace('index.php'); 같은공간에서/그자리에서 바꾸는것 (뒤로가기가 안됨)
+location.href='index.php';-->내가 보는 화면에서 이동하는것
+
+<?php echo $array["uname"];?>;---> 바로 input에 바꿔넣는다.
+생년월일은 1994-12-26형식으로 들어가기 때문에
+explode("-",$array["birtday"]);해서 19941226형식으로 바꿔서 넣는다.
+후에 연결연산자를 이용해서 연결해준후 생년월일에 넣어준다.
+
+이메일의 표현방법 2가지
+1. 가입할때는 @기준 두개로 쪼개서 하고 수정할때는 한칸짜리로하는 방법이 있다.
+2. 생년월일과 똑같은 방법으로 해준다.
+
+성별
+checked있는거랑 없는거 하나씩 만들어서
+if else문으로 if($array["gender"]=="M"){
+    checked M
+}else{checked 아닌것}
+if($array["gender"]=="F"){
+    checked F
+}else{checked 아닌것}
+안바뀌는 값인데 표시는 되어야한다면
+- readonly 사용자가 직접입력만 못하지 js랑 php로 그안에 값이 입력을 할 수 있음 다른페이지로 값이 전달
+- disabled 다른페이지로 값이 전달이 안됨 (라디오같은경우는 읽을 수 없으니 disabled)
+edit_ok.php
+    edit.php에서 아이디와 이름을 input type hidden으로 해놓고 value에다 값을 넣으면 edit_ok.php에서 $uid가능
+    sesstion을 써도됨
+
+    쿼리문을 두개만들어야함
+    사용자가 비밀번호를 수정안할 수 있기 때문에 비밀번호 있는 쿼리문 없는 쿼리문
+
+    쿼리문이 select 인 경우는 리턴되는 값이 있으니깐 그것을 사용할려면 그것을 변수($result)에 담는것이고
+    insert / delete / update는 리턴값이 없다.
+
+** 회원탈퇴 **
+로그아웃 스크립트 복사해서 사용
+1. 사용했던 아이디를 사용못하게 하는방법---> 아이디를 제외한 나머지 값을 update하는 방법
+2. 가입을 했던 사용자의 아이디만 있는 테이블을 또만든다.
+    아이디 중복검색을 할때에는 members테이블이 아니라 가입했던 아이디를 모아둔 테이블로 한다.
+쿼리문을 따로 만들어서 각각의 테이블에 한번에 보내기 하는것도 가능하다.
+adit.php카피해서 ---->delete.php만듬
+쿼리문 delete 탈퇴니깐 로그아웃이 되야하기때문에 페이지 이동전에 unset session해줌
+
+** 관리자 **
+if문으로 로그인 아이디가 관리자의 아아디와 같다면
+로그아웃위에 a태그로 관리자 페이지보이게
+php 는 서버기때문에 클라이언트에서 볼수없음
+admin.php만든다.-->기본html
+session켜고 if문 으로 echo 스크립트 중요**
+admin폴더안에 로그인파일을 복사해서 만든다음
+1. admin.php에 관지만접속경고창띄운다음 바로 admin/login.php로 이동하게끔한다.
+2. admin/login_ok.php에는 페이지 이동이 admin.php
+html>body에 관리기능 추가
+admin안에 mgr_members.php추가---파일이름 mgr인이유 그냥 members와 구분하기위해(mgr_nitice/mgr_event)실무에서도 관리자페이지의 구분을 위해
+admin.php에서 회원관리와 mgr_members.php 연결 --->반복문/게시판의 목록나오는 페이지와 같음
+
+** 회원관리**
+mysqli_num_rows(전송쿼리);//결과행의 갯수 select count(*) from 해도상관없음
+회원들의 전체 데이터가 필요하기때문에 반복문을 사용한다.
+테이블 만들고 반복은 회원정보이기 때문에 회원정보를 반복한다.
+mysqli_fetch_row등등 이런것은 무조건 첫번째 것만 출력되기때문에
+반복문을 써줌으로 써 그런것 필요없이 바로다음줄 불러오고 다음줄 불러옴
+반복할 수 있는 방법
+1. 미리 전체 가운터를 구해놓고 for 문으로 카운터변수를 넣는다. $a<=$num --->첫번째 행만 회원수 만큼 반복
+2. while($array 변수){
+    <tr>
+    <td>
+}
+3. 회원목록 번호
+$begin_num = 1;
+echo $begin_num;
+마지막에 $begin_num++;(1씩 늘어남)
+
+**게시판처럼 번호를 거꾸로 뜨게 해주고 싶으면 $count_list = $mysqli_num_rows($result);
+$begin_num = $count_list(게시판 전체 갯수 부터)
+$begin_num--;(전체갯수부터 하나씩 작게)
+
+4. 조건문 써서 성별 M--> 남 F--> 여로 바꾸기
+5. member폴더에서 edit.php/edit_ok.php/delete.php 복사해서 
+수정 mgr_member_edit.php / 삭제 mgr_member_delete.php 로변경
+기본 edit.php 파일에는 $sid(로그인한 아이디)를 수정하기로 했으니깐 $sid를 mgr_members에서
+get 방식이 데이터를 전송하는 방식 파일명.확장자? 변수=값 & 변수=값 & 변수=값 &는 두가지의 값
+form 태그에 메소드를 get이 아니여도 링크로 데이터 보내기가 가능함
+**방법**
+1. 수정
+mgr_member.php
+회원들마다 각자 수정해야하기때문에
+a태그에 파일명.확장자 mgr_member_edit.php?idx=<?php echo $array["idx"]; ?>
+mgr_edit.php 에는 session["uid]로 받아올것이 아니라 $_GET["idx"]-->a태그가 get방식이기 때문에
+쿼리문도 idx = '$idx';
+
+mgr_member_edit.php
+session_start
+member.php 에 get 방식 idx를 불러온다.
+쿼리문 idx=$dix
+아이디에 폼태그에 보이지 않는 hidden input 만들어서 idx값을 불러오게 한다.(<?php echo $idx; ?>)
+name = idx id=idx
+
+mgr_member_edit_ok.php
+edit.php가 post 이기때문에 idx는 post방식으로 불러옴
+쿼리문 수정
+페이지 mgr_member.php로 이동
+
+2. 탈퇴
+2-1 수정에서 탈퇴
+edit.php button oncilck="del_id(<?php echo $array["idx"]; ?>)" 이벤트 추가
+script href "mgr_member_delete.php?idx="+idx--->idx가 붙는 이유는 delete.php에서 get방식으로 불러와야 쿼리문을 완성할 수 있기 떄문에
+
+mgr_member_delete.php
+get 방식으로 idx불러오기
+쿼리수정
+unset 삭제
+페이지 이동 mgr_member.php
+
+2-2 member.php 에서 바로 삭제
+member.php
+삭제 a태그에 oncilck="del_id(<?php echo $array["idx"]; ?>)" 이벤트 추가
+script href "mgr_member_delete.php?idx="+idx--->idx가 붙는 이유는 delete.php에서 get방식으로 불러와야 쿼리문을 완성할 수 있기 떄문에
+
+
